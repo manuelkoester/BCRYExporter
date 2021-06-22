@@ -12,8 +12,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Upload release
+      - name: Create Archive
         uses: thedoctor0/zip-release@master
         with:
           filename: "BCRYExporter.zip"
           directory: ./io_bcry_exporter
+      - name: Upload release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "BCRYExporter.zip"
+          token: ${{ secrets.GITHUB_TOKEN }}
