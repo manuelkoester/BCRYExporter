@@ -15,6 +15,5 @@ jobs:
       - name: Upload release
         uses: thedoctor0/zip-release@master
         with:
-          artifacts: "BCRYExporter.zip"
+          filename: "BCRYExporter.zip"
           directory: ./io_bcry_exporter
-          token: ${{ secrets.GITHUB_TOKEN }}
