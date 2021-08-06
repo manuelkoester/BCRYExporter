@@ -172,7 +172,7 @@ def get_bmesh(object_, apply_modifiers=False):
     # That lacking related with Blender, if it will fix in future that
     # code will be clean.
 
-    bcry_split_modifier(object_)
+    # bcry_split_modifier(object_)
 
     depsgraph = bpy.context.evaluated_depsgraph_get()
     bpy.ops.object.mode_set(mode='EDIT')
@@ -193,7 +193,7 @@ def get_bmesh(object_, apply_modifiers=False):
 
 def clear_bmesh(object_, bmesh_):
     bpy.ops.object.mode_set(mode='OBJECT')
-    remove_bcry_split_modifier(object_)
+    # remove_bcry_split_modifier(object_)
     object_.to_mesh_clear()
 
 
@@ -274,6 +274,18 @@ def get_custom_normals(bmesh_, use_edge_angle, split_angle):
 
     return float_normals
 
+
+def get_crytek_normals(mesh):
+    if mesh.has_custom_normals:
+        mesh.calc_normals_split()
+    float_normals = []
+    for loop in mesh.loops:
+        float_normals.extend(loop.normal.copy())
+
+    # p_float_normals = [float_normals[i:i + 3] for i in range(0, len(float_normals), 3)]
+    # print(len(p_float_normals))
+
+    return float_normals
 
 def get_normal_array(bmesh_, use_edge_angle, use_edge_sharp, split_angle):
     float_normals = []

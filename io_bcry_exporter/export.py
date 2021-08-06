@@ -257,8 +257,9 @@ class CrytekDaeExporter:
 
         float_normals = None
         if self._config.custom_normals:
-            float_normals = utils.get_custom_normals(bmesh_, use_edge_angle,
-                                                     split_angle)
+            # float_normals = utils.get_custom_normals(bmesh_, use_edge_angle,
+            #                                          split_angle)
+            float_normals = utils.get_crytek_normals(object_.data)
         else:
             float_normals = utils.get_normal_array(bmesh_, use_edge_angle,
                                                    use_edge_sharp, split_angle)
