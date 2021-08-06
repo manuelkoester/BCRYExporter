@@ -240,29 +240,7 @@ class CrytekDaeExporter:
         mesh_node.appendChild(source)
 
     def _write_normals(self, object_, bmesh_, mesh_node, geometry_name):
-        split_angle = 0
-        use_edge_angle = False
-        use_edge_sharp = False
-
-        if object_.data.use_auto_smooth:
-            use_edge_angle = True
-            use_edge_sharp = True
-            split_angle = object_.data.auto_smooth_angle
-        else:
-            for modifier in object_.modifiers:
-                if modifier.type == 'EDGE_SPLIT' and modifier.show_viewport:
-                    use_edge_angle = modifier.use_edge_angle
-                    use_edge_sharp = modifier.use_edge_sharp
-                    split_angle = modifier.split_angle
-
-        float_normals = None
-        if self._config.custom_normals:
-            # float_normals = utils.get_custom_normals(bmesh_, use_edge_angle,
-            #                                          split_angle)
-            float_normals = utils.get_crytek_normals(object_.data)
-        else:
-            float_normals = utils.get_normal_array(bmesh_, use_edge_angle,
-                                                   use_edge_sharp, split_angle)
+        float_normals = utils.get_crytek_normals(object_.data)
 
         id_ = "{!s}-normal".format(geometry_name)
         source = utils.write_source(id_, "float", float_normals, "XYZ")

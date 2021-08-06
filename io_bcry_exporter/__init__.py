@@ -3202,11 +3202,6 @@ class BCRY_OT_export(bpy.types.Operator, ExportHelper):
         description="Just exports selected nodes.",
         default=False
     )
-    custom_normals: BoolProperty(
-        name="Use Custom Normals",
-        description="Use custom normals.",
-        default=False
-    )
     vcloth_pre_process: BoolProperty(
         name="VCloth Pre-Process",
         description="Export skin as simulating mesh for VCloth V2.",
@@ -3278,7 +3273,6 @@ class BCRY_OT_export(bpy.types.Operator, ExportHelper):
                 'apply_modifiers',
                 'merge_all_nodes',
                 'export_selected_nodes',
-                'custom_normals',
                 'vcloth_pre_process',
                 'generate_materials',
                 'convert_textures',
@@ -3341,7 +3335,6 @@ class BCRY_OT_export(bpy.types.Operator, ExportHelper):
         box.prop(self, "apply_modifiers")
         box.prop(self, "merge_all_nodes")
         box.prop(self, "export_selected_nodes")
-        box.prop(self, "custom_normals")
         box.prop(self, "vcloth_pre_process")
 
         box = col.box()
@@ -3500,11 +3493,6 @@ class BCRY_OT_quick_export(bpy.types.Operator, ExportHelper):
         description="Just exports selected nodes.",
         default=False
     )
-    custom_normals: BoolProperty(
-        name="Use Custom Normals",
-        description="Use custom normals.",
-        default=False
-    )
     vcloth_pre_process: BoolProperty(
         name="VCloth Pre-Process",
         description="Export skin as simulating mesh for VCloth V2.",
@@ -3576,7 +3564,6 @@ class BCRY_OT_quick_export(bpy.types.Operator, ExportHelper):
                 'apply_modifiers',
                 'merge_all_nodes',
                 'export_selected_nodes',
-                'custom_normals',
                 'vcloth_pre_process',
                 'generate_materials',
                 'convert_textures',
@@ -3640,7 +3627,6 @@ class BCRY_OT_quick_export(bpy.types.Operator, ExportHelper):
         box.prop(self, "apply_modifiers")
         box.prop(self, "merge_all_nodes")
         box.prop(self, "export_selected_nodes")
-        box.prop(self, "custom_normals")
         box.prop(self, "vcloth_pre_process")
 
         box = col.box()

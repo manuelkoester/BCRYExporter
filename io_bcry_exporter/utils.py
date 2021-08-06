@@ -278,12 +278,10 @@ def get_custom_normals(bmesh_, use_edge_angle, split_angle):
 def get_crytek_normals(mesh):
     if mesh.has_custom_normals:
         mesh.calc_normals_split()
+        
     float_normals = []
     for loop in mesh.loops:
         float_normals.extend(loop.normal.copy())
-
-    # p_float_normals = [float_normals[i:i + 3] for i in range(0, len(float_normals), 3)]
-    # print(len(p_float_normals))
 
     return float_normals
 
