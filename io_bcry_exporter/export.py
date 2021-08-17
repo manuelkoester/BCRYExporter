@@ -266,23 +266,29 @@ class CrytekDaeExporter:
         mesh_node.appendChild(source)
 
     def _write_vertex_colors(self, object_, bmesh_, mesh_node, geometry_name):
+        """If vertex alpha is 1,1,1 for all vertices it will not get written."""
         float_colors = []
         alpha_found = False
 
         active_layer = bmesh_.loops.layers.color.active
         if object_.data.vertex_colors:
-            if active_layer.name.lower() == 'alpha':
+            rgba = []
+            for vert in bmesh_.verts:
+                loop = vert.link_loops[0]
+                color = loop[active_layer]
+                rgba.append(color)
+
+            alpha = [i[3] for i in rgba]
+            if not min(alpha) == max(alpha) == 1:
+                print("ALPHA")
                 alpha_found = True
-                for vert in bmesh_.verts:
-                    loop = vert.link_loops[0]
-                    color = loop[active_layer]
-                    alpha_color = (color[0] + color[1] + color[2]) / 3.0
-                    float_colors.extend([1.0, 1.0, 1.0, alpha_color])
+                for i in rgba:
+                    float_colors.extend(i)
             else:
-                for vert in bmesh_.verts:
-                    loop = vert.link_loops[0]
-                    color = loop[active_layer]
-                    float_colors.extend([color[0], color[1], color[2]])
+                print("NOALPHA")
+                for i in rgba:
+                    # only add RGB values and ignore alpha
+                    float_colors.extend(i[:3])
 
         if float_colors:
             id_ = "{!s}-vcol".format(geometry_name)
