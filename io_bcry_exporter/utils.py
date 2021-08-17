@@ -161,7 +161,7 @@ def get_geometry_name(group, object_):
         return "{}_{}_geometry".format(node_name, object_.name)
 
 
-def get_bmesh(object_, apply_modifiers=False):
+def get_bmesh_and_mesh(object_, apply_modifiers=False):
     set_active(object_)
 
     # bmesh may be gotten only in edit mode for active object.
@@ -171,24 +171,22 @@ def get_bmesh(object_, apply_modifiers=False):
     # already in first layer. Also scene first layer must be active.
     # That lacking related with Blender, if it will fix in future that
     # code will be clean.
-
-    # bcry_split_modifier(object_)
-
-    depsgraph = bpy.context.evaluated_depsgraph_get()
-    bpy.ops.object.mode_set(mode='EDIT')
-
+    
     if apply_modifiers:
+        depsgraph = bpy.context.evaluated_depsgraph_get()
         object_eval = object_.evaluated_get(depsgraph)
-        mesh = object_eval.to_mesh()
+        mesh_ = object_eval.data.copy()
+        mesh_.calc_normals_split()
         bmesh_ = bmesh.new()
-        bmesh_.from_mesh(mesh)
+        bmesh_.from_mesh(mesh_)
 
     else:
-        mesh = object_.to_mesh()
+        mesh_ = object_.data.copy()
+        mesh_.calc_normals_split()
         bmesh_ = bmesh.new()
-        bmesh_.from_mesh(mesh)
+        bmesh_.from_mesh(mesh_)
 
-    return bmesh_
+    return bmesh_, mesh_
 
 
 def clear_bmesh(object_, bmesh_):
@@ -237,48 +235,7 @@ def get_tessfaces(bmesh_):
 
     return tessfaces
 
-
-def get_custom_normals(bmesh_, use_edge_angle, split_angle):
-    float_normals = []
-
-    for face in bmesh_.faces:
-        if not face.smooth:
-            for vertex in face.verts:
-                float_normals.extend(face.normal.normalized())
-        else:
-            for vertex in face.verts:
-                v_normals = [[face.normal.normalized(), face.calc_area()]]
-                for link_face in vertex.link_faces:
-                    if face.index == link_face.index:
-                        continue
-                    if link_face.smooth:
-                        if not use_edge_angle:
-                            v_normals.append([link_face.normal.normalized(), link_face.calc_area()])
-
-                        elif use_edge_angle:
-                            face_angle = face.normal.normalized().dot(link_face.normal.normalized())
-                            face_angle = min(1.0, max(face_angle, -1.0))
-                            face_angle = math.acos(face_angle)
-                            if face_angle < split_angle:
-                                v_normals.append([link_face.normal.normalized(), link_face.calc_area()])
-
-                smooth_normal = Vector()
-                area_sum = 0
-                for vertex_normal in v_normals:
-                    area_sum += vertex_normal[1]
-                for vertex_normal in v_normals:
-                    if area_sum:
-                        smooth_normal += vertex_normal[0] * \
-                            (vertex_normal[1] / area_sum)
-                float_normals.extend(smooth_normal.normalized())
-
-    return float_normals
-
-
-def get_crytek_normals(mesh):
-    if mesh.has_custom_normals:
-        mesh.calc_normals_split()
-        
+def get_normals(mesh):
     float_normals = []
     for loop in mesh.loops:
         float_normals.extend(loop.normal.copy())

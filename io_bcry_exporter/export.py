@@ -188,7 +188,8 @@ class CrytekDaeExporter:
                 if utils.get_node_type(collection) in ('chr', 'skin'):
                     apply_modifiers = False
 
-                bmesh_ = utils.get_bmesh(object_, apply_modifiers)
+                bmesh_, mesh_ = utils.get_bmesh_and_mesh(object_, apply_modifiers)
+
                 geometry_node = self._doc.createElement("geometry")
                 geometry_name = utils.get_geometry_name(collection, object_)
                 geometry_node.setAttribute("id", geometry_name)
@@ -202,7 +203,7 @@ class CrytekDaeExporter:
                 bcPrint('Positions have been writed {:.4f} seconds.'.format(clock() - start_time))
 
                 start_time = clock()
-                self._write_normals(object_, bmesh_, mesh_node, geometry_name)
+                self._write_normals(mesh_, mesh_node, geometry_name)
                 bcPrint('Normals have been writed {:.4f} seconds.'.format(clock() - start_time))
 
                 start_time = clock()
@@ -239,8 +240,8 @@ class CrytekDaeExporter:
         source = utils.write_source(id_, "float", float_positions, "XYZ")
         mesh_node.appendChild(source)
 
-    def _write_normals(self, object_, bmesh_, mesh_node, geometry_name):
-        float_normals = utils.get_crytek_normals(object_.data)
+    def _write_normals(self, mesh_, mesh_node, geometry_name):
+        float_normals = utils.get_normals(mesh_)
 
         id_ = "{!s}-normal".format(geometry_name)
         source = utils.write_source(id_, "float", float_normals, "XYZ")
