@@ -280,12 +280,10 @@ class CrytekDaeExporter:
 
             alpha = [i[3] for i in rgba]
             if not min(alpha) == max(alpha) == 1:
-                print("ALPHA")
                 alpha_found = True
                 for i in rgba:
                     float_colors.extend(i)
             else:
-                print("NOALPHA")
                 for i in rgba:
                     # only add RGB values and ignore alpha
                     float_colors.extend(i[:3])
