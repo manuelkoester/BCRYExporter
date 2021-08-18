@@ -188,6 +188,7 @@ class CrytekDaeExporter:
                 if utils.get_node_type(collection) in ('chr', 'skin'):
                     apply_modifiers = False
 
+                utils.reapply_object_scale(object_)
                 bmesh_, mesh_ = utils.get_bmesh_and_mesh(object_, apply_modifiers)
 
                 geometry_node = self._doc.createElement("geometry")

@@ -1416,6 +1416,12 @@ def remove_unused_actions():
         if "+bcry" in action.name:
             bpy.data.actions.remove(action)
 
+def reapply_object_scale(object_):
+    """Blender seems to struggle with scale not being 'applied'? When we reenter the object's
+    scale however this is fixed."""
+    scale_tmp = object_.scale
+    object_.scale = (1.0, 1.0, 1.0)
+    object_.scale = scale_tmp
 
 def get_bounding_box(object_):
     vmin = Vector()
