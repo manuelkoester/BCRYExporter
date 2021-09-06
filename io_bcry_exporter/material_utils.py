@@ -143,7 +143,10 @@ def get_materials(just_selected=False):
                         node, index, name, physics)
                     materials[material_name] = material
 
-    return sort_materials_by_names(materials)
+    # removed sorting to fix materials being sorted by their order 
+    # in blender instead of their ids
+    # return sort_materials_by_names(materials) 
+    return materials
 
 
 def set_material_attributes(material, material_name, material_node):

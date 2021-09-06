@@ -1293,7 +1293,7 @@ class BCRY_OT_add_material(bpy.types.Operator):
                             index = len(material_utils.get_materials_per_group(node_name)) + 1
                             # generate new material
                             material = bpy.data.materials.new(
-                                "{}__{:03d}__{}__{}".format(
+                                "{}__{:02d}__{}__{}".format(
                                     node_name.split(".")[0],
                                     index,
                                     self.material_name,
@@ -3698,6 +3698,33 @@ class View3DPanel():
     bl_category = "BCry Exporter"
     bl_options = {'DEFAULT_CLOSED'}
 
+class BCRY_OT_link_selected_objects_to_collection(bpy.types.Operator):
+    """Utility button for users to quickly link objects from other collections
+    to the export selection or the other way round."""
+    
+    bl_label = "Link selected Objects to Collection"
+    bl_idname = "bcry.link_objects_to_collection"
+    bl_options = {'REGISTER', 'UNDO'}
+
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(context.scene, "collections")
+
+    def invoke(self, context, event):
+        update_collection_enum()
+        return context.window_manager.invoke_props_dialog(self)
+
+    def execute(self, context):
+        selected_collection = bpy.data.collections[context.scene.collections]
+
+        for obj in context.selected_objects:
+            if obj.name not in selected_collection.objects:
+                bcPrint("Adding object to collection: " + obj.name)
+                selected_collection.objects.link(obj)
+            else:
+                bcPrint("Object '{}' already linked to collection '{}'!".format(obj.name, selected_collection.name))
+        return {'FINISHED'}
 
 class BCRY_PT_export_utilities_panel(View3DPanel, Panel):
     bl_label = "Export Utilities"
@@ -3733,6 +3760,10 @@ class BCRY_PT_export_utilities_panel(View3DPanel, Panel):
             BCRY_OT_feet_on_floor.bl_idname,
             text="Feet On Floor",
             icon="ARMATURE_DATA")
+        col.separator()
+        col.operator(
+            BCRY_OT_link_selected_objects_to_collection.bl_idname,
+            icon="LINKED")
 
 
 class BCRY_PT_cry_utilities_panel(View3DPanel, Panel):
@@ -4066,6 +4097,7 @@ class BCRY_MT_main_menu(bpy.types.Menu):
             BCRY_OT_feet_on_floor.bl_idname,
             text="Feet On Floor", icon="ARMATURE_DATA")
         layout.separator()
+        layout.operator(BCRY_OT_link_selected_objects_to_collection.bl_idname)
 
         layout.menu(
             BCRY_MT_add_physics_proxy_menu.bl_idname,
@@ -4461,6 +4493,7 @@ def get_classes_to_register():
         BCRY_OT_selected_to_cry_export_nodes,
         BCRY_OT_apply_transforms,
         BCRY_OT_feet_on_floor,
+        BCRY_OT_link_selected_objects_to_collection,
 
         BCRY_OT_add_material,
         BCRY_OT_add_material_properties,
@@ -4561,6 +4594,37 @@ def unregister_bcry_icons():
     global bcry_icons
     bpy.utils.previews.remove(bcry_icons)
 
+def update_collection_enum():
+    bpy.types.Scene.collections = bpy.props.EnumProperty(items=get_collection_enum_items(), 
+        name = "Collection Name",
+        description = "Collection to link the selected objects to")
+
+def get_collection_enum_items():
+    collections = []
+
+    try:
+        collections = bpy.data.collections
+    except:
+        bcPrint("No collections found")
+        
+    items = []
+    for i, collection in enumerate(collections):
+        color_tag = collection.color_tag
+
+        if color_tag == "NONE":
+            icon = "OUTLINER_COLLECTION"
+        else:
+            icon = "COLLECTION_{}".format(color_tag)
+
+        item = (
+            collection.name,
+            collection.name,
+            collection.name,
+            icon,
+            i)
+
+        items.append(item)
+    return items
 
 def register():
     register_bcry_icons()
@@ -4571,6 +4635,7 @@ def register():
     bpy.types.MATERIAL_MT_context_menu.append(physics_menu)
     bpy.types.MESH_MT_vertex_group_context_menu.append(remove_unused_vertex_groups)
     bpy.types.Scene.proxy_props = bpy.props.PointerProperty(type=BCRY_ProxyProperties)
+    update_collection_enum()
 
 
 def unregister():
@@ -4583,6 +4648,7 @@ def unregister():
     bpy.types.MATERIAL_MT_context_menu.remove(physics_menu)
     bpy.types.MESH_MT_vertex_group_context_menu.remove(remove_unused_vertex_groups)
     del bpy.types.Scene.proxy_props
+    # del bpy.types.Scene.collections
 
 if __name__ == "__main__":
     register()
