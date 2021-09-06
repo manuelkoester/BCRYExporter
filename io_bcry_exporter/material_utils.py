@@ -144,7 +144,7 @@ def get_materials(just_selected=False):
                     materials[material_name] = material
 
     # removed sorting to fix materials being sorted by their order 
-    # in blender instead of their ids
+    # in blender instead of their name ids
     # return sort_materials_by_names(materials) 
     return materials
 

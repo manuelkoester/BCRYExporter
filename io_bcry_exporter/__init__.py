@@ -3720,11 +3720,39 @@ class BCRY_OT_link_selected_objects_to_collection(bpy.types.Operator):
 
         for obj in context.selected_objects:
             if obj.name not in selected_collection.objects:
-                bcPrint("Adding object to collection: " + obj.name)
+                bcPrint("Linking object '{}' from collection '{}'.".format(obj.name, selected_collection.name))
                 selected_collection.objects.link(obj)
             else:
                 bcPrint("Object '{}' already linked to collection '{}'!".format(obj.name, selected_collection.name))
         return {'FINISHED'}
+
+class BCRY_OT_unlink_selected_objects_from_collection(bpy.types.Operator):
+    """Utility button for users to quickly unlink objects from a specified collection."""
+    
+    bl_label = "Unlink selected Objects from Collection"
+    bl_idname = "bcry.unlink_objects_from_collection"
+    bl_options = {'REGISTER', 'UNDO'}
+
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(context.scene, "selected_objects_collections")
+
+    def invoke(self, context, event):
+        update_selected_objects_collections_enum()
+        return context.window_manager.invoke_props_dialog(self)
+
+    def execute(self, context):
+        selected_collection = bpy.data.collections[context.scene.selected_objects_collections]
+
+        for obj in context.selected_objects:
+            if obj.name in selected_collection.objects:
+                bcPrint("Unlinking object '{}' from collection '{}'.".format(obj.name, selected_collection.name))
+                selected_collection.objects.unlink(obj)
+            else:
+                bcPrint("Object '{}' not linked to collection '{}'!".format(obj.name, selected_collection.name))
+        return {'FINISHED'}
+
 
 class BCRY_PT_export_utilities_panel(View3DPanel, Panel):
     bl_label = "Export Utilities"
@@ -3764,6 +3792,9 @@ class BCRY_PT_export_utilities_panel(View3DPanel, Panel):
         col.operator(
             BCRY_OT_link_selected_objects_to_collection.bl_idname,
             icon="LINKED")
+        col.operator(
+            BCRY_OT_unlink_selected_objects_from_collection.bl_idname,
+            icon="UNLINKED")
 
 
 class BCRY_PT_cry_utilities_panel(View3DPanel, Panel):
@@ -4098,6 +4129,7 @@ class BCRY_MT_main_menu(bpy.types.Menu):
             text="Feet On Floor", icon="ARMATURE_DATA")
         layout.separator()
         layout.operator(BCRY_OT_link_selected_objects_to_collection.bl_idname)
+        layout.operator(BCRY_OT_unlink_selected_objects_from_collection.bl_idname)
 
         layout.menu(
             BCRY_MT_add_physics_proxy_menu.bl_idname,
@@ -4494,6 +4526,7 @@ def get_classes_to_register():
         BCRY_OT_apply_transforms,
         BCRY_OT_feet_on_floor,
         BCRY_OT_link_selected_objects_to_collection,
+        BCRY_OT_unlink_selected_objects_from_collection,
 
         BCRY_OT_add_material,
         BCRY_OT_add_material_properties,
@@ -4624,6 +4657,49 @@ def get_collection_enum_items():
             i)
 
         items.append(item)
+    
+    return items
+
+def update_selected_objects_collections_enum():
+    bpy.types.Scene.selected_objects_collections = bpy.props.EnumProperty(
+        items=get_selected_objects_collections_enum_items(), 
+        name = "Collection Name",
+        description = "Collection to unlink the selected objects from")
+
+def get_selected_objects_collections_enum_items():
+    selected_objects_collections = []
+    selected_objects = []
+
+    try:
+        selected_objects = bpy.context.selected_objects
+        for obj in selected_objects:
+            for col in obj.users_collection:
+                if col not in selected_objects_collections and not col.name == "Master Collection":
+                    selected_objects_collections.append(col)
+    except:
+        bcPrint("No collections found")
+        
+    items = []
+    for i, collection in enumerate(selected_objects_collections):
+        color_tag = collection.color_tag
+
+        selected_objects_in_current_collection_count = len(
+            [obj for obj in selected_objects if collection in obj.users_collection])
+
+        if color_tag == "NONE":
+            icon = "OUTLINER_COLLECTION"
+        else:
+            icon = "COLLECTION_{}".format(color_tag)
+
+        item = (
+            collection.name,
+            "{} ({} Objects)".format(collection.name, selected_objects_in_current_collection_count),
+            collection.name,
+            icon,
+            i)
+
+        items.append(item)
+
     return items
 
 def register():
@@ -4636,6 +4712,7 @@ def register():
     bpy.types.MESH_MT_vertex_group_context_menu.append(remove_unused_vertex_groups)
     bpy.types.Scene.proxy_props = bpy.props.PointerProperty(type=BCRY_ProxyProperties)
     update_collection_enum()
+    update_selected_objects_collections_enum()
 
 
 def unregister():
